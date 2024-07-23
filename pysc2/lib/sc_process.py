@@ -20,7 +20,10 @@ import signal
 import subprocess
 import tempfile
 import time
-import prctl
+try:
+  import prctl
+except:
+  prctl = None
 
 from absl import flags
 from absl import logging
@@ -45,7 +48,6 @@ sw = stopwatch.sw
 
 class SC2LaunchError(Exception):
   pass
-
 
 class StarcraftProcess(object):
   """Launch a starcraft server, initialize a controller, and later, clean up.
@@ -195,7 +197,9 @@ class StarcraftProcess(object):
     def set_pdeathsig():
         os.setpgrp()  # Create a new process group, become its leader
         signal.signal(signal.SIGTERM, signal.SIG_DFL)  # Ensure SIGTERM uses the default handler
-        prctl.set_pdeathsig(signal.SIGTERM)  # Set the parent death signal to SIGTERM
+        if prctl:
+          prctl.set_pdeathsig(signal.SIGTERM)  # Set the parent death signal to SIGTERM
+
     try:
       with sw("popen"):
         return subprocess.Popen(
