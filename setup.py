@@ -44,7 +44,7 @@ class BuildCommand(distutils.command.build.build):
 
 setup(
     name='PySC2',
-    version='4.0.0',
+    version='4.0.1',
     description='Starcraft II environment and library for training agents.',
     long_description=description,
     author='DeepMind',
