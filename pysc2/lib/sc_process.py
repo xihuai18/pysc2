@@ -20,6 +20,7 @@ import signal
 import subprocess
 import tempfile
 import time
+import prctl
 
 from absl import flags
 from absl import logging
@@ -194,8 +195,7 @@ class StarcraftProcess(object):
     def set_pdeathsig():
         os.setpgrp()  # Create a new process group, become its leader
         signal.signal(signal.SIGTERM, signal.SIG_DFL)  # Ensure SIGTERM uses the default handler
-        os.prctl(os.PR_SET_PDEATHSIG, signal.SIGTERM)  # Set the parent death signal to SIGTERM
-
+        prctl.set_pdeathsig(signal.SIGTERM)  # Set the parent death signal to SIGTERM
     try:
       with sw("popen"):
         return subprocess.Popen(
