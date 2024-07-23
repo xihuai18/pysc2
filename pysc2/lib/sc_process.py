@@ -16,6 +16,7 @@
 import os
 import platform
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
@@ -190,10 +191,15 @@ class StarcraftProcess(object):
 
   def _launch(self, run_config, args, **kwargs):
     """Launch the process and return the process object."""
+    def set_pdeathsig():
+        os.setpgrp()  # Create a new process group, become its leader
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)  # Ensure SIGTERM uses the default handler
+        os.prctl(os.PR_SET_PDEATHSIG, signal.SIGTERM)  # Set the parent death signal to SIGTERM
+
     try:
       with sw("popen"):
         return subprocess.Popen(
-            args, cwd=run_config.cwd, env=run_config.env, **kwargs)
+            args, cwd=run_config.cwd, env=run_config.env, preexec_fn=set_pdeathsig, **kwargs)
     except OSError as e:
       logging.exception("Failed to launch")
       raise SC2LaunchError("Failed to launch: %s" % args) from e
